@@ -1,4 +1,4 @@
-class Oystercard
+class Oystercard # :nodoc:
   attr_accessor :balance
 
   def initialize
