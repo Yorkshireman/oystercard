@@ -8,7 +8,8 @@ class Oystercard # :nodoc:
 
   def top_up(amount)
     if top_up_would_exceed_max_balance?(amount)
-      raise ArgumentError, 'maximum balance allowed is 90'
+      message = "top-up of #{amount} would exceed maximum allowed balance"
+      raise ArgumentError, message
     end
 
     self.balance += amount

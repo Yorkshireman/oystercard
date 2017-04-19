@@ -11,8 +11,9 @@ RSpec.describe Oystercard do
   end
 
   it 'has a maximum balance of 90' do
+    expected_message = 'top-up of 91 would exceed maximum allowed balance'
     expect { subject.top_up(91) }.to(
-      raise_error(ArgumentError, 'maximum balance allowed is 90')
+      raise_error(ArgumentError, expected_message)
     )
   end
 end
