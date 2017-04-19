@@ -15,6 +15,10 @@ class Oystercard # :nodoc:
     self.balance += amount
   end
 
+  def deduct(fare)
+    self.balance -= fare
+  end
+
   private
 
   def top_up_would_exceed_max_balance?(amount)
