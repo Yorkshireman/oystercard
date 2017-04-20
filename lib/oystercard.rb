@@ -12,8 +12,9 @@ class Oystercard # :nodoc:
 
   def top_up(amount)
     if top_up_would_exceed_max_balance?(amount)
-      message = "top-up of #{amount} would exceed maximum allowed balance"
-      raise ArgumentError, message
+      # rubocop:disable LineLength
+      raise ArgumentError, "top-up of #{amount} would exceed maximum allowed balance of #{MAXIMUM_ALLOWED_BALANCE}"
+      # rubocop:enable LineLength
     end
 
     self.balance += amount

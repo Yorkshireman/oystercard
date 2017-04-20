@@ -19,9 +19,10 @@ RSpec.describe Oystercard do
     end
 
     it 'has a maximum balance' do
-      expected_message = 'top-up of 91 would exceed maximum allowed balance'
-      expect { subject.top_up(91) }.to(
-        raise_error(ArgumentError, expected_message)
+      expect { subject.top_up(91) }.to raise_error(
+        # rubocop:disable LineLength
+        ArgumentError, "top-up of 91 would exceed maximum allowed balance of #{MAXIMUM_ALLOWED_BALANCE}"
+        # rubocop:enable LineLength
       )
     end
   end
@@ -46,9 +47,10 @@ RSpec.describe Oystercard do
 
     context 'when balance is less than MINIMUM_TOUCH_IN_BALANCE' do
       it 'refuses to touch-in' do
-        expected_message = 'balance of 0 is less than minimum balance of 1'
         expect { subject.touch_in }.to raise_error(
-          RuntimeError, expected_message
+          # rubocop:disable LineLength
+          RuntimeError, "balance of 0 is less than minimum balance of #{MINIMUM_TOUCH_IN_BALANCE}"
+          # rubocop:enable LineLength
         )
       end
     end
