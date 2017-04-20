@@ -1,6 +1,8 @@
 MAXIMUM_ALLOWED_BALANCE = 90
 MINIMUM_TOUCH_IN_BALANCE = 1
+MINIMUM_FARE = 1
 
+# rubocop:disable LineLength
 class Oystercard # :nodoc:
   attr_accessor :balance
   attr_accessor :in_journey
@@ -12,33 +14,30 @@ class Oystercard # :nodoc:
 
   def top_up(amount)
     if top_up_would_exceed_max_balance?(amount)
-      # rubocop:disable LineLength
       raise ArgumentError, "top-up of #{amount} would exceed maximum allowed balance of #{MAXIMUM_ALLOWED_BALANCE}"
-      # rubocop:enable LineLength
     end
 
     self.balance += amount
   end
 
-  def deduct(fare)
-    self.balance -= fare
-  end
-
   def touch_in
     if minimum_balance_not_met?
-      # rubocop:disable LineLength
       raise "balance of #{self.balance} is less than minimum balance of #{MINIMUM_TOUCH_IN_BALANCE}"
-      # rubocop:enable LineLength
     end
 
     self.in_journey = true
   end
 
   def touch_out
+    deduct(MINIMUM_FARE)
     self.in_journey = false
   end
 
   private
+
+  def deduct(fare)
+    self.balance -= fare
+  end
 
   def top_up_would_exceed_max_balance?(amount)
     (amount + self.balance) > MAXIMUM_ALLOWED_BALANCE
@@ -48,3 +47,4 @@ class Oystercard # :nodoc:
     self.balance < MINIMUM_TOUCH_IN_BALANCE
   end
 end
+# rubocop:enable LineLength
