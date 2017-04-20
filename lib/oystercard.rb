@@ -4,12 +4,10 @@ MINIMUM_FARE = 1
 
 # rubocop:disable LineLength
 class Oystercard # :nodoc:
-  attr_accessor :balance
-  attr_accessor :in_journey
+  attr_accessor :balance, :entry_station
 
   def initialize
     @balance = 0
-    @in_journey = false
   end
 
   def top_up(amount)
@@ -20,17 +18,22 @@ class Oystercard # :nodoc:
     self.balance += amount
   end
 
-  def touch_in
+  def touch_in(station)
     if minimum_balance_not_met?
       raise "balance of #{self.balance} is less than minimum balance of #{MINIMUM_TOUCH_IN_BALANCE}"
     end
 
-    self.in_journey = true
+    self.entry_station = station
   end
 
   def touch_out
     deduct(MINIMUM_FARE)
-    self.in_journey = false
+    self.entry_station = nil
+  end
+
+  def in_journey?
+    return false if self.entry_station == nil
+    true
   end
 
   private

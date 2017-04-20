@@ -4,12 +4,12 @@ require 'oystercard'
 # rubocop:disable LineLength
 RSpec.describe Oystercard do
   describe 'defaults' do
-    it 'has an opening balance of zero' do
+    it 'balance is 0' do
       expect(subject.balance).to eq 0
     end
 
-    it 'has an opening \'in_journey\' status of \'false\'' do
-      expect(subject.in_journey).to eq false
+    it 'entry_station is nil' do
+      expect(subject.entry_station).to be_nil
     end
   end
 
@@ -27,32 +27,50 @@ RSpec.describe Oystercard do
     end
   end
 
+
   describe '#touch_in' do
+    let(:station) { double }
+
     context 'when balance is less than MINIMUM_TOUCH_IN_BALANCE' do
       it 'raises RuntimeError with an appropriate message' do
-        expect { subject.touch_in }.to raise_error(
+        expect { subject.touch_in(station) }.to raise_error(
           RuntimeError, "balance of 0 is less than minimum balance of #{MINIMUM_TOUCH_IN_BALANCE}"
         )
       end
     end
 
     context 'when balance is not less than MINIMUM_TOUCH_IN_BALANCE' do
-      it 'sets @in_journey to true' do
+      it 'populates @entry_station correctly' do
         subject.balance = MINIMUM_TOUCH_IN_BALANCE
-        expect { subject.touch_in }.to change { subject.in_journey }.to true
+        expect { subject.touch_in(station) }.to change { subject.entry_station }.to station
       end
     end
   end
 
   describe '#touch_out' do
-    it 'changes @in_journey to false' do
-      subject.in_journey = true
-      expect { subject.touch_out }.to change { subject.in_journey }.to false
-    end
-
     it 'deducts minimum fare' do
       subject.balance = 10
       expect { subject.touch_out }.to change { subject.balance }.by(-MINIMUM_FARE)
+    end
+
+    it 'sets @entry_station to nil' do
+      subject.entry_station = 'foo'
+      expect { subject.touch_out }.to change { subject.entry_station }.to nil
+    end
+  end
+
+  describe '#in_journey?' do
+    context 'when @entry_station is truthy' do
+      it 'returns true' do
+        subject.entry_station = 'foo'
+        expect(subject.in_journey?).to eq true
+      end
+    end
+
+    context 'when @entry_station is nil' do
+      it 'returns false' do
+        expect(subject.in_journey?).to eq false
+      end
     end
   end
 end
