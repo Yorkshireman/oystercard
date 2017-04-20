@@ -3,6 +3,9 @@ require 'oystercard'
 # rubocop:disable Metrics/BlockLength
 # rubocop:disable LineLength
 RSpec.describe Oystercard do
+  let(:mock_entry_station) { instance_double('Station', name: 'Waterloo') }
+  let(:mock_exit_station) { instance_double('Station', name: 'Aldgate East') }
+
   describe 'defaults' do
     it 'balance is 0' do
       expect(subject.balance).to eq 0
@@ -10,6 +13,10 @@ RSpec.describe Oystercard do
 
     it 'entry_station is nil' do
       expect(subject.entry_station).to be_nil
+    end
+
+    it 'journeys is empty array' do
+      expect(subject.journeys).to eq []
     end
   end
 
@@ -27,13 +34,10 @@ RSpec.describe Oystercard do
     end
   end
 
-
   describe '#touch_in' do
-    let(:station) { double }
-
     context 'when balance is less than MINIMUM_TOUCH_IN_BALANCE' do
       it 'raises RuntimeError with an appropriate message' do
-        expect { subject.touch_in(station) }.to raise_error(
+        expect { subject.touch_in(mock_entry_station) }.to raise_error(
           RuntimeError, "balance of 0 is less than minimum balance of #{MINIMUM_TOUCH_IN_BALANCE}"
         )
       end
@@ -42,7 +46,7 @@ RSpec.describe Oystercard do
     context 'when balance is not less than MINIMUM_TOUCH_IN_BALANCE' do
       it 'populates @entry_station correctly' do
         subject.balance = MINIMUM_TOUCH_IN_BALANCE
-        expect { subject.touch_in(station) }.to change { subject.entry_station }.to station
+        expect { subject.touch_in(mock_entry_station) }.to change { subject.entry_station }.to mock_entry_station
       end
     end
   end
@@ -50,12 +54,25 @@ RSpec.describe Oystercard do
   describe '#touch_out' do
     it 'deducts minimum fare' do
       subject.balance = 10
-      expect { subject.touch_out }.to change { subject.balance }.by(-MINIMUM_FARE)
+      expect { subject.touch_out(mock_exit_station) }.to change { subject.balance }.by(-MINIMUM_FARE)
     end
 
     it 'sets @entry_station to nil' do
-      subject.entry_station = 'foo'
-      expect { subject.touch_out }.to change { subject.entry_station }.to nil
+      subject.entry_station = mock_entry_station
+      expect { subject.touch_out(mock_exit_station) }.to change { subject.entry_station }.to nil
+    end
+
+    it 'updates @journeys correctly' do
+      subject.entry_station = mock_entry_station
+
+      expected_journeys_array = [
+        {
+          entry_station: mock_entry_station,
+          exit_station: mock_exit_station
+        }
+      ]
+
+      expect { subject.touch_out(mock_exit_station) }.to change { subject.journeys }.to expected_journeys_array
     end
   end
 

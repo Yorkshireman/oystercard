@@ -2,12 +2,15 @@ MAXIMUM_ALLOWED_BALANCE = 90
 MINIMUM_TOUCH_IN_BALANCE = 1
 MINIMUM_FARE = 1
 
+require_relative './station'
+
 # rubocop:disable LineLength
 class Oystercard # :nodoc:
-  attr_accessor :balance, :entry_station
+  attr_accessor :balance, :entry_station, :journeys
 
   def initialize
     @balance = 0
+    @journeys = []
   end
 
   def top_up(amount)
@@ -26,13 +29,15 @@ class Oystercard # :nodoc:
     self.entry_station = station
   end
 
-  def touch_out
+  def touch_out(station)
+    journey = { entry_station: entry_station, exit_station: station }
+    journeys << journey
     deduct(MINIMUM_FARE)
     self.entry_station = nil
   end
 
   def in_journey?
-    return false if self.entry_station == nil
+    return false if entry_station.nil?
     true
   end
 
