@@ -37,8 +37,7 @@ class Oystercard # :nodoc:
   end
 
   def in_journey?
-    return false if entry_station.nil?
-    true
+    !entry_station.nil?
   end
 
   private
