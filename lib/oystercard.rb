@@ -1,12 +1,14 @@
 MAXIMUM_ALLOWED_BALANCE = 90
 MINIMUM_TOUCH_IN_BALANCE = 1
 MINIMUM_FARE = 1
+PENALTY_FARE = 6
 
 require_relative './station'
+require_relative './journey'
 
 # rubocop:disable LineLength
 class Oystercard # :nodoc:
-  attr_accessor :balance, :entry_station, :journeys
+  attr_accessor :balance, :current_journey, :journeys
 
   def initialize
     @balance = 0
@@ -21,26 +23,45 @@ class Oystercard # :nodoc:
     self.balance += amount
   end
 
-  def touch_in(station)
-    if minimum_balance_not_met?
-      raise "balance of #{self.balance} is less than minimum balance of #{MINIMUM_TOUCH_IN_BALANCE}"
+  def touch_in(station, journey = Journey.new)
+    if journey_in_progress?
+      raise "balance is less than minimum required balance of #{PENALTY_FARE}" if balance < PENALTY_FARE
+      finish_journey
     end
 
-    self.entry_station = station
+    if minimum_balance_not_met?
+      raise "balance of #{balance} is less than minimum required balance of #{MINIMUM_TOUCH_IN_BALANCE}"
+    end
+
+    commence(journey, station)
   end
 
-  def touch_out(station)
-    journey = { entry_station: entry_station, exit_station: station }
-    journeys << journey
-    deduct(MINIMUM_FARE)
-    self.entry_station = nil
-  end
+  def touch_out(exit_station, new_journey = Journey.new)
+    unless journey_in_progress?
+      raise "balance is less than required balance of #{PENALTY_FARE}" if balance < PENALTY_FARE
+      self.current_journey = new_journey
+    end
 
-  def in_journey?
-    !entry_station.nil?
+    finish_journey(exit_station)
   end
 
   private
+
+  def journey_in_progress?
+    current_journey ? true : false
+  end
+
+  def commence(journey, station)
+    journey.begin(station)
+    self.current_journey = journey
+  end
+
+  def finish_journey(exit_station = nil)
+    current_journey.finish(exit_station)
+    deduct(current_journey.fare)
+    journeys << current_journey
+    self.current_journey = nil
+  end
 
   def deduct(fare)
     self.balance -= fare
